@@ -1,0 +1,38 @@
+version: '3'
+services:
+
+    nginx:
+        container_name: nginx
+        build: ./nginx
+        image: docker-server/nginx
+        restart: always
+        ports:
+          - "80:80"
+        volumes:
+          - ./server_django:/srv/docker-server
+          - ./log:/var/log/nginx
+          - ./static_volume:/srv/docker-server/static
+        depends_on:
+          - django
+
+    django:
+        container_name: django
+        build: ./server_django
+        image: docker-server/django
+        restart: always
+        command: uwsgi --ini uwsgi.ini
+        volumes:
+          - ./server_django:/srv/docker-server
+          - ./log:/var/log/uwsgi
+          - ./static_volume:/srv/docker-server/static  
+        depends_on:
+          - db
+
+    db:
+        image: postgres
+        environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=postgres
+        volumes:
+          - ./pgdata:/var/lib/postgresql/data
+
